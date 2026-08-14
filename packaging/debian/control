@@ -8,7 +8,7 @@ Build-Depends:
  ninja-build,
  libxcb1-dev,
  libxcb-randr0-dev,
- libxcb-cursor0-dev,
+ libxcb-cursor-dev,
  libcairo2-dev,
  libpango1.0-dev,
  libglib2.0-dev,

@@ -82,10 +82,17 @@ cp -a "${pkgs[@]}" "$OUTDIR/"
   sha256sum "$(basename "${pkgs[0]}")" >SHA256SUMS-arch.txt
 )
 # Publish PKGBUILD + .SRCINFO next to the package for AUR mirrors.
-if [[ -f "$WORK/.SRCINFO" ]]; then
+# GitHub release uploads reject empty assets (HTTP 400 Bad Content-Length).
+if [[ -s "$WORK/.SRCINFO" ]]; then
   cp -a "$WORK/.SRCINFO" "$OUTDIR/PKGBUILD.SRCINFO"
+elif [[ "$(id -u)" -eq 0 ]]; then
+  su -s /bin/bash zestbuild -c "cd '$WORK' && makepkg --printsrcinfo" >"$OUTDIR/PKGBUILD.SRCINFO"
 else
-  (cd "$WORK" && makepkg --printsrcinfo >"$OUTDIR/PKGBUILD.SRCINFO") || true
+  (cd "$WORK" && makepkg --printsrcinfo >"$OUTDIR/PKGBUILD.SRCINFO")
+fi
+if [[ ! -s "$OUTDIR/PKGBUILD.SRCINFO" ]]; then
+  echo "failed to produce non-empty PKGBUILD.SRCINFO" >&2
+  exit 1
 fi
 cp -a "$WORK/PKGBUILD" "$OUTDIR/PKGBUILD"
 

@@ -130,7 +130,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           shopt -s nullglob
-          assets=(dist-arch/zestwm-*.pkg.tar.* dist-arch/SHA256SUMS-arch.txt dist-arch/PKGBUILD dist-arch/PKGBUILD.SRCINFO)
+          candidates=(dist-arch/zestwm-*.pkg.tar.* dist-arch/SHA256SUMS-arch.txt dist-arch/PKGBUILD dist-arch/PKGBUILD.SRCINFO)
+          assets=()
+          for f in "${candidates[@]}"; do
+            if [[ -s "$f" ]]; then
+              assets+=("$f")
+            else
+              echo "skip missing/empty asset: $f" >&2
+            fi
+          done
           if [[ ${#assets[@]} -eq 0 ]]; then
             echo "no Arch assets in dist-arch" >&2
             ls -la dist-arch >&2 || true
