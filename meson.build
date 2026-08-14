@@ -1,7 +1,7 @@
 project(
   'zestwm',
   'cpp',
-  version: '6.8',
+  version: '0.1.0',
   meson_version: '>=1.3.0',
   default_options: [
     'cpp_std=gnu++23',
