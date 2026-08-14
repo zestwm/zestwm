@@ -48,17 +48,19 @@ jobs:
           fi
           echo "version=$ver" >>"$GITHUB_OUTPUT"
 
+      # clang-19: C++ #embed (GCC 15+ / Clang 19+). Ubuntu 24.04 ships GCC 13/14 only.
       - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            meson ninja-build g++ pkg-config \
+            meson ninja-build clang-19 pkg-config \
             libxcb1-dev libxcb-randr0-dev libxcb-cursor-dev \
             libcairo2-dev libpango1.0-dev libglib2.0-dev libfontconfig-dev
 
       - name: Build Linux assets
         env:
           ZESTWM_NO_DEB: "1"
+          CXX: clang++-19
         run: |
           chmod +x scripts/build-release-assets.sh
           scripts/build-release-assets.sh \
@@ -153,16 +155,19 @@ jobs:
           name: zestwm-source-tarball
           path: dist-in
 
+      # clang-19: same #embed requirement as the Linux tarball job.
       - name: Install Debian build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential debhelper dpkg-dev \
-            meson ninja-build g++ pkg-config \
+            meson ninja-build clang-19 pkg-config \
             libxcb1-dev libxcb-randr0-dev libxcb-cursor-dev \
             libcairo2-dev libpango1.0-dev libglib2.0-dev libfontconfig-dev
 
       - name: Build Debian package
+        env:
+          CXX: clang++-19
         run: |
           ver='${{ needs.linux-deb-and-tarballs.outputs.version }}'
           chmod +x scripts/build-deb-pkg.sh
