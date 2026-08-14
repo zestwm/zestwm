@@ -49,10 +49,12 @@ if [[ -z "$SRC" ]]; then
   exit 1
 fi
 
-# Force the canonical source directory name.
+# Force the canonical source directory name when the tarball top-level differs.
 RENAMED="${WORK}/zestwm-${UPSTREAM}"
-mv "$SRC" "$RENAMED"
-SRC="$RENAMED"
+if [[ "$SRC" != "$RENAMED" ]]; then
+  mv "$SRC" "$RENAMED"
+  SRC="$RENAMED"
+fi
 
 # Copy Debian packaging files into the source tree.
 cp -aT "${ROOT}/packaging/debian" "${SRC}/debian"
