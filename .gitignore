@@ -1,0 +1,8 @@
+# Build artifacts
+compile_commands.json
+build/
+build-asan/
+build-coverage/
+build-strict/
+.cache
+*.o

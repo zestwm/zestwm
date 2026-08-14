@@ -1,0 +1,49 @@
+# Maintainer: zestwm contributors
+# Arch Linux package for ZestWM (X11/XLibre window manager).
+#
+# CI builds a local source tarball and runs makepkg against this file.
+# For AUR / manual rebuilds, set `url` to your GitHub repository
+# (https://github.com/ORG/REPO) so `source=` can fetch the tagged archive.
+
+pkgname=zestwm
+pkgver=0.0.0
+pkgrel=1
+pkgdesc='Workspace-first tiling window manager for X11/XLibre'
+arch=('x86_64')
+url='https://github.com/zestwm/zestwm'
+license=('MIT')
+depends=(
+  'libxcb'
+  'xcb-util-cursor'
+  'cairo'
+  'pango'
+  'glib2'
+  'fontconfig'
+)
+makedepends=(
+  'meson'
+  'ninja'
+  'gcc'
+  'pkgconf'
+)
+options=('!lto')
+# CI replaces this with a local tarball name + sha256; AUR uses the GitHub tag archive.
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  local rootsrc
+  rootsrc="$(find "$srcdir" -mindepth 1 -maxdepth 1 -type d | head -n1)"
+  meson setup build "$rootsrc" --prefix=/usr --buildtype=release \
+    -Dunit_tests=false -Dintegration_tests=false
+  meson compile -C build
+}
+
+package() {
+  meson install -C build --destdir "$pkgdir"
+  local rootsrc
+  rootsrc="$(find "$srcdir" -mindepth 1 -maxdepth 1 -type d | head -n1)"
+  install -Dm644 "$rootsrc/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 "$rootsrc/examples/zestwm.conf" "$pkgdir/usr/share/doc/$pkgname/examples/zestwm.conf"
+  install -Dm644 "$rootsrc/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+}

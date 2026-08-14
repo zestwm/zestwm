@@ -1,0 +1,27 @@
+Source: zestwm
+Section: x11
+Priority: optional
+Maintainer: zestwm contributors <noreply@users.noreply.github.com>
+Build-Depends:
+ debhelper (>= 13),
+ meson (>= 1.3.0),
+ ninja-build,
+ libxcb1-dev,
+ libxcb-randr0-dev,
+ libxcb-cursor0-dev,
+ libcairo2-dev,
+ libpango1.0-dev,
+ libglib2.0-dev,
+ libfontconfig1-dev,
+ pkg-config,
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Homepage: https://github.com/zestwm/zestwm
+
+Package: zestwm
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Workspace-first tiling window manager for X11/XLibre
+ ZestWM is a small tiling window manager for X11/XLibre built around
+ stable workspace identity, a BSP tree, tab groups, special overlays,
+ and a file-based configuration (zestwm.conf).

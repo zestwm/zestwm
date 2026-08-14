@@ -1,0 +1,183 @@
+# Build and upload release assets when a GitHub Release is published.
+#
+# Artifacts:
+# - zestwm-<ver>.tar.gz (source)
+# - zestwm-<ver>-linux-x86_64.tar.gz (stripped binaries + docs)
+# - zestwm_<ver>_amd64.deb
+# - zestwm-<ver>-*-x86_64.pkg.tar.zst (Arch, via makepkg)
+# - SHA256SUMS-*.txt, PKGBUILD, PKGBUILD.SRCINFO
+#
+# Trigger: release published (create the Release / tag in the GitHub UI first).
+name: Release assets
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-assets-${{ github.event.release.tag_name }}
+  cancel-in-progress: true
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  linux-deb-and-tarballs:
+    name: Source, binary tar, deb
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Parse version
+        id: meta
+        run: |
+          tag='${{ github.event.release.tag_name }}'
+          ver="${tag#v}"
+          if [[ -z "$ver" ]]; then
+            echo "empty version from tag=$tag" >&2
+            exit 1
+          fi
+          echo "version=$ver" >>"$GITHUB_OUTPUT"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            meson ninja-build g++ pkg-config \
+            libxcb1-dev libxcb-randr0-dev libxcb-cursor-dev \
+            libcairo2-dev libpangocairo-1.0-dev libglib2.0-dev libfontconfig-dev
+
+      - name: Build Linux assets
+        env:
+          ZESTWM_NO_DEB: "1"
+        run: |
+          chmod +x scripts/build-release-assets.sh
+          scripts/build-release-assets.sh \
+            '${{ steps.meta.outputs.version }}' \
+            dist
+
+      - name: Upload assets to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ver='${{ steps.meta.outputs.version }}'
+          gh release upload '${{ github.event.release.tag_name }}' \
+            "dist/zestwm-${ver}.tar.gz" \
+            "dist/zestwm-${ver}-linux-x86_64.tar.gz" \
+            dist/SHA256SUMS-linux.txt \
+            --clobber
+
+      - name: Upload source tarball for Arch job
+        uses: actions/upload-artifact@v4
+        with:
+          name: zestwm-source-tarball
+          path: dist/zestwm-${{ steps.meta.outputs.version }}.tar.gz
+          if-no-files-found: error
+
+  arch-makepkg:
+    name: Arch makepkg
+    needs: linux-deb-and-tarballs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Download source tarball artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: zestwm-source-tarball
+          path: dist-in
+
+      - name: Build package inside Arch container
+        run: |
+          chmod +x scripts/build-arch-pkg.sh
+          ver='${{ needs.linux-deb-and-tarballs.outputs.version }}'
+          mkdir -p dist-arch
+          docker run --rm \
+            -e VERSION="$ver" \
+            -e GITURL="https://github.com/${{ github.repository }}" \
+            -v "$PWD:/work" \
+            -w /work \
+            archlinux:latest \
+            bash -lc '
+              set -euo pipefail
+              pacman -Syu --noconfirm
+              pacman -S --noconfirm --needed \
+                base-devel meson ninja gcc pkgconf git \
+                libxcb xcb-util-cursor cairo pango glib2 fontconfig
+              scripts/build-arch-pkg.sh \
+                "$VERSION" \
+                "dist-in/zestwm-${VERSION}.tar.gz" \
+                dist-arch \
+                "$GITURL"
+            '
+
+      - name: Upload Arch assets to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          assets=(dist-arch/zestwm-*.pkg.tar.* dist-arch/SHA256SUMS-arch.txt dist-arch/PKGBUILD dist-arch/PKGBUILD.SRCINFO)
+          if [[ ${#assets[@]} -eq 0 ]]; then
+            echo "no Arch assets in dist-arch" >&2
+            ls -la dist-arch >&2 || true
+            exit 1
+          fi
+          gh release upload '${{ github.event.release.tag_name }}' "${assets[@]}" --clobber
+
+  debian-package:
+    name: Debian package
+    needs: linux-deb-and-tarballs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Download source tarball artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: zestwm-source-tarball
+          path: dist-in
+
+      - name: Install Debian build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential debhelper dpkg-dev \
+            meson ninja-build g++ pkg-config \
+            libxcb1-dev libxcb-randr0-dev libxcb-cursor-dev \
+            libcairo2-dev libpangocairo-1.0-dev libglib2.0-dev libfontconfig-dev
+
+      - name: Build Debian package
+        run: |
+          ver='${{ needs.linux-deb-and-tarballs.outputs.version }}'
+          chmod +x scripts/build-deb-pkg.sh
+          mkdir -p dist-deb
+          scripts/build-deb-pkg.sh "$ver" 1 "dist-in/zestwm-${ver}.tar.gz" dist-deb
+
+      - name: Upload Debian assets to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ver='${{ needs.linux-deb-and-tarballs.outputs.version }}'
+          assets=(dist-deb/zestwm_${ver}-1_amd64.deb dist-deb/SHA256SUMS-deb.txt)
+          if [[ ! -f "${assets[0]}" ]]; then
+            echo "expected .deb not found" >&2
+            ls -la dist-deb >&2 || true
+            exit 1
+          fi
+          gh release upload '${{ github.event.release.tag_name }}' "${assets[@]}" --clobber

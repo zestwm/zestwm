@@ -1,0 +1,17 @@
+---
+# Lean static analysis for zestwm. Opt-in via scripts/check-cpp-tidy.sh or `meson compile -C build cpp-tidy`.
+# Barrel re-exports in intern.hpp intentionally duplicate declarations from module headers.
+Checks: >
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-narrowing-conversions,
+  modernize-use-nullptr,
+  modernize-use-override,
+  readability-delete-null-pointer,
+  -readability-redundant-declaration,
+  -readability-magic-numbers,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length
+WarningsAsErrors: ''
+HeaderFilterRegex: 'src/.*'
+FormatStyle: none

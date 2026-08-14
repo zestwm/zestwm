@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+
+# Block commits when staged files are root-owned.
+# This catches accidental edits performed by privileged processes.
+staged_files=()
+while IFS= read -r -d '' path; do
+  staged_files+=("${path}")
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+
+if [[ ${#staged_files[@]} -eq 0 ]]; then
+  exit 0
+fi
+
+violations=()
+for path in "${staged_files[@]}"; do
+  if [[ ! -e "${path}" ]]; then
+    continue
+  fi
+  uid="$(stat -c '%u' "${path}")"
+  gid="$(stat -c '%g' "${path}")"
+  if [[ "${uid}" == "0" || "${gid}" == "0" ]]; then
+    owner_group="$(stat -c '%U:%G' "${path}")"
+    violations+=("${path} (${owner_group})")
+  fi
+done
+
+if [[ ${#violations[@]} -eq 0 ]]; then
+  :
+else
+  echo "pre-commit: root-owned file(s) staged; refusing commit." >&2
+  printf ' - %s\n' "${violations[@]}" >&2
+  echo "fix: sudo chown -R \"\$(id -un):\$(id -gn)\" <paths>" >&2
+  exit 1
+fi
+
+cpp_staged=()
+for path in "${staged_files[@]}"; do
+  case "${path}" in
+    *.cpp|*.hpp|*.h) cpp_staged+=("${path}") ;;
+  esac
+done
+
+if [[ ${#cpp_staged[@]} -gt 0 ]] && command -v clang-format >/dev/null 2>&1; then
+  if ! "${repo_root}/scripts/check-cpp-format.sh" "${cpp_staged[@]}"; then
+    echo "pre-commit: clang-format drift in staged C++ files" >&2
+    exit 1
+  fi
+fi
+
+exit 0

@@ -1,0 +1,9 @@
+zestwm for Debian
+-----------------
+
+This package is built from the upstream Meson project with debhelper's
+meson build system.  Tests are disabled in the package build; upstream
+integration tests require a nested X11 server and are run in the CI
+pipeline.
+
+ -- zestwm contributors <noreply@users.noreply.github.com>

@@ -1,0 +1,27 @@
+option(
+  'integration_tests',
+  type: 'boolean',
+  value: true,
+  description: 'Build and register integration test targets',
+)
+
+option(
+  'unit_tests',
+  type: 'boolean',
+  value: true,
+  description: 'Build and register unit test targets',
+)
+
+option(
+  'strict_cpp',
+  type: 'boolean',
+  value: false,
+  description: 'Enable strict C++ warnings and -Werror',
+)
+
+option(
+  'native_optimizations',
+  type: 'boolean',
+  value: false,
+  description: 'Enable -march=native for local performance builds',
+)

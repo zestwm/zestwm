@@ -1,0 +1,5 @@
+zestwm ({{VERSION}}) unstable; urgency=medium
+
+  * Debian package build for zestwm.
+
+ -- zestwm contributors <noreply@users.noreply.github.com>  {{DATE}}
