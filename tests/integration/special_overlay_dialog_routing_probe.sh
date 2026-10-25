@@ -44,9 +44,6 @@ need_cmd() {
 zestwm_require_nested_x11 "special-overlay-dialog-routing-probe"
 need_cmd xdpyinfo
 
-unset DBUS_SESSION_BUS_ADDRESS
-unset DBUS_SYSTEM_BUS_ADDRESS
-
 cp "${base_conf_path}" "${probe_conf_path}"
 cat >> "${probe_conf_path}" <<EOF
 workspace = special:${special_tag}

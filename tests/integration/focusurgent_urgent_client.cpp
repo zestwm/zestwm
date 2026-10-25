@@ -221,6 +221,9 @@ int main(int argc, char** argv) {
     bool urgency_set = false;
 
     while (g_running.load()) {
+        /* Exit with the nested server: probe cleanup cannot always track client PIDs spawned from $(...). */
+        if (xcb_connection_has_error(conn))
+            break;
         while (xcb_generic_event_t* ev = xcb_poll_for_event(conn)) {
             const uint8_t type = static_cast<uint8_t>(ev->response_type & 0x7FU);
             if (type == XCB_DESTROY_NOTIFY)

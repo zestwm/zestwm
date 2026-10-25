@@ -334,7 +334,9 @@ if integration_tests_enabled
   # this, but `meson test` bypasses it and would otherwise inherit the caller's
   # real HOME/XDG_*, causing the test WM to write into ~/.local/state/zestwm and
   # touch the host dbus session. Each probe still allocates its own nested
-  # :DISPLAY via xserver_common.inc.sh; this env only sandboxes filesystem state.
+  # :DISPLAY via xserver_common.inc.sh. XDG_CONFIG_DIRS hides /etc/xdg/autostart, and the
+  # private XDG_RUNTIME_DIR + dead DBUS_SESSION_BUS_ADDRESS keep the startup
+  # `dbus-update-activation-environment --all` and spawned apps off the host session bus.
   # Capture host DISPLAY (empty if unset) so the probe guard rejects it as target.
   host_display_res = run_command('printenv', 'DISPLAY', check: false)
   probe_test_env = environment()
@@ -343,6 +345,9 @@ if integration_tests_enabled
   probe_test_env.set('XDG_STATE_HOME', '/tmp/zestwm-meson-test-xdg-state')
   probe_test_env.set('XDG_CACHE_HOME', '/tmp/zestwm-meson-test-xdg-cache')
   probe_test_env.set('XDG_DATA_HOME', '/tmp/zestwm-meson-test-xdg-data')
+  probe_test_env.set('XDG_CONFIG_DIRS', '/tmp/zestwm-meson-test-xdg-config-dirs')
+  probe_test_env.set('XDG_RUNTIME_DIR', '/tmp/zestwm-meson-test-xdg-runtime')
+  probe_test_env.set('DBUS_SESSION_BUS_ADDRESS', 'unix:path=/tmp/zestwm-meson-test-xdg-runtime/no-bus')
   probe_test_env.set('ZESTWM_HOST_DISPLAY', host_display_res.stdout().strip())
   probe_test_env.set('ZESTWM_NESTED_X11_DEBUG', '0')
   probe_test_env.unset('XAUTHORITY')

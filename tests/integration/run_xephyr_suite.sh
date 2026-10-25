@@ -130,7 +130,11 @@ setup_suite_sandbox_env() {
   suite_xdg_state_home="${suite_sandbox_root}/xdg-state"
   suite_xdg_cache_home="${suite_sandbox_root}/xdg-cache"
   suite_xdg_data_home="${suite_sandbox_root}/xdg-data"
-  mkdir -p "${suite_home}" "${suite_xdg_config_home}" "${suite_xdg_state_home}" "${suite_xdg_cache_home}" "${suite_xdg_data_home}"
+  suite_xdg_config_dirs="${suite_sandbox_root}/xdg-config-dirs"
+  suite_xdg_runtime_dir="${suite_sandbox_root}/xdg-runtime"
+  mkdir -p "${suite_home}" "${suite_xdg_config_home}" "${suite_xdg_state_home}" "${suite_xdg_cache_home}" "${suite_xdg_data_home}" \
+    "${suite_xdg_config_dirs}" "${suite_xdg_runtime_dir}"
+  chmod 700 "${suite_xdg_runtime_dir}"
 }
 
 # Each probe allocates a private :DISPLAY (nested Xephyr or Xvfb) and runs zestwm only there.
@@ -220,6 +224,9 @@ for t in "${tests[@]}"; do
     XDG_STATE_HOME="${suite_xdg_state_home}" \
     XDG_CACHE_HOME="${suite_xdg_cache_home}" \
     XDG_DATA_HOME="${suite_xdg_data_home}" \
+    XDG_CONFIG_DIRS="${suite_xdg_config_dirs}" \
+    XDG_RUNTIME_DIR="${suite_xdg_runtime_dir}" \
+    DBUS_SESSION_BUS_ADDRESS="unix:path=${suite_xdg_runtime_dir}/no-bus" \
     ZESTWM_HOST_DISPLAY="${ZESTWM_HOST_DISPLAY}" \
     ZESTWM_PREFER_XEPHYR="${ZESTWM_PREFER_XEPHYR:-}" \
     ZESTWM_NESTED_X11_DEBUG="${ZESTWM_NESTED_X11_DEBUG:-0}" \

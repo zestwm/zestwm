@@ -51,6 +51,15 @@ zestwm_start_nested_x11() {
   fi
   # Force subsequent commands in probe process to use nested display by default.
   export DISPLAY="${disp}"
+  # Wait until the server accepts clients: zestwm started earlier exits with "cannot open display".
+  # Probes keep their own readiness/skip checks for a server that never comes up.
+  if command -v xdpyinfo >/dev/null 2>&1; then
+    for _ in {1..40}; do
+      kill -0 "${xvfb_pid}" 2>/dev/null || break
+      xdpyinfo >/dev/null 2>&1 && break
+      sleep 0.1
+    done
+  fi
   if [[ "${ZESTWM_NESTED_X11_DEBUG:-0}" == "1" ]]; then
     echo "zestwm_start_nested_x11: backend=${backend} host_display='${ZESTWM_HOST_DISPLAY:-<empty>}' nested_display='${DISPLAY}' pid=${xvfb_pid}" >&2
   fi

@@ -45,9 +45,6 @@ need_cmd xdpyinfo
 need_cmd xwininfo
 need_cmd xprop
 
-unset DBUS_SESSION_BUS_ADDRESS
-unset DBUS_SYSTEM_BUS_ADDRESS
-
 cp "${base_conf_path}" "${probe_conf_path}"
 cat >> "${probe_conf_path}" <<EOF
 workspace = special:${special_tag}
