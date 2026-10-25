@@ -325,8 +325,10 @@ int main(int argc, char* argv[]) {
         }
         update_net_desktop_props();
         run();
+        /* backend_ctx owns the connection: close it once here so its destructor sees conn == nullptr. */
         if (restart) {
-            xcb_disconnect(xcb);
+            backend_ctx.disconnect();
+            xcb = nullptr;
             constexpr int kMaxReloadArgv = 64;
             char*         reload_argv[kMaxReloadArgv];
             int           reload_argc = 0;
@@ -344,7 +346,8 @@ int main(int argc, char* argv[]) {
             return EXIT_FAILURE;
         }
         cleanup();
-        xcb_disconnect(xcb);
+        backend_ctx.disconnect();
+        xcb = nullptr;
         return EXIT_SUCCESS;
     } catch (const std::exception& e) { die("zestwm: fatal: %s", e.what()); } catch (...) {
         die("zestwm: fatal error");
