@@ -151,7 +151,7 @@ if ! DISPLAY="${display}" xdpyinfo >/dev/null 2>&1; then
   exit 77
 fi
 
-HOME="${tmp_home}" XDG_CURRENT_DESKTOP="zestwm" DISPLAY="${display}" \
+HOME="${tmp_home}" XDG_CONFIG_HOME="${tmp_home}/.config" XDG_CURRENT_DESKTOP="zestwm" DISPLAY="${display}" \
   "${zestwm_bin}" -c "${probe_conf_path}" >/tmp/zestwm-xdg-autostart.log 2>&1 &
 wm_pid=$!
 

@@ -209,9 +209,22 @@ namespace {
     void run_xdg_autostart_worker(xcb_connection_t* xc) {
         ::sleep(2);
 
+        /* XDG autostart dirs, lowest precedence first so later inserts override by file name:
+         * $XDG_CONFIG_DIRS (default /etc/xdg) in reverse, then $XDG_CONFIG_HOME (default ~/.config). */
         std::map<std::string, std::filesystem::path, std::less<>> desktop_files;
-        collect_desktop_files("/etc/xdg/autostart", desktop_files);
-        if (const char* home = std::getenv("HOME"); home && *home)
+        const char*                                               config_dirs = std::getenv("XDG_CONFIG_DIRS");
+        std::vector<std::filesystem::path>                        system_dirs;
+        for (std::string_view rest = (config_dirs && *config_dirs) ? config_dirs : "/etc/xdg"; !rest.empty();) {
+            const std::size_t sep = rest.find(':');
+            if (const std::string_view dir = rest.substr(0, sep); !dir.empty())
+                system_dirs.emplace_back(dir);
+            rest = (sep == std::string_view::npos) ? std::string_view{} : rest.substr(sep + 1U);
+        }
+        for (auto it = system_dirs.rbegin(); it != system_dirs.rend(); ++it)
+            collect_desktop_files(*it / "autostart", desktop_files);
+        if (const char* config_home = std::getenv("XDG_CONFIG_HOME"); config_home && *config_home)
+            collect_desktop_files(std::filesystem::path(config_home) / "autostart", desktop_files);
+        else if (const char* home = std::getenv("HOME"); home && *home)
             collect_desktop_files(std::filesystem::path(home) / ".config" / "autostart", desktop_files);
 
         const auto current_desktops = parse_current_desktops();
