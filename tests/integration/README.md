@@ -139,6 +139,9 @@ This directory contains integration-level probes for real X11 behavior paths.
   - maps a floating `_NET_WM_WINDOW_TYPE_DIALOG` on a normal workspace and on an open special overlay
   - asserts Absolute X/Y stay on-screen (guards against legacy `x + 2 * sw` pre-map placement)
   - asserts `_NET_WM_WINDOW_OPACITY` is absent (floating dialogs stay fully opaque for compositors)
+- `fullscreen_utility_transient_probe.sh`
+  - `MUST-EWMH-002`: UTILITY with pre-map `_NET_WM_STATE_FULLSCREEN`, transient UTILITY via `xdotool windowstate` ClientMessage add/remove, `open-fullscreen` rule on UTILITY
+  - asserts monitor-sized fullscreen geometry; a DIALOG with pre-map fullscreen state stays suppressed
 - `clients_floating_export_probe.sh`
   - asserts `zestctl clients` reports `floating:no` for a tiled map, `floating:yes` after `togglefloating`, then `floating:no` after toggle back
   - covers root `_NET_ZEST_FLOATING_CLIENTS` runtime export
@@ -172,6 +175,7 @@ This directory contains integration-level probes for real X11 behavior paths.
 - `MUST-GROUP-003` -> `group-single-special-toggle-crash`
 - `MUST-GROUP-004` -> `close-second-client-crash`
 - `MUST-EWMH-001` -> `ewmh-dock-gap`
+- `MUST-EWMH-002` -> `fullscreen-utility-transient`
 - `MUST-IPC-001` -> `dispatch-special-aliases`
 - `MUST-PARSER-001` -> `parser-workspace-name-dispatch` (+ `config-workspace` unit registry lookup)
 

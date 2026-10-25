@@ -90,6 +90,8 @@ int main(int argc, char** argv) {
     std::string  wm_instance    = "focusurgent-probe";
     std::string  wm_class       = "FocusurgentProbe";
     bool         dialog_window  = false;
+    bool         utility_window = false;
+    bool         fullscreen     = false;
     bool         set_net_wm_pid = false;
     xcb_window_t transient_for  = XCB_WINDOW_NONE;
 
@@ -114,6 +116,10 @@ int main(int argc, char** argv) {
             dock_window = true;
         } else if (std::strcmp(argv[i], "--dialog") == 0) {
             dialog_window = true;
+        } else if (std::strcmp(argv[i], "--utility") == 0) {
+            utility_window = true;
+        } else if (std::strcmp(argv[i], "--fullscreen") == 0) {
+            fullscreen = true;
         } else if (std::strcmp(argv[i], "--net-wm-pid") == 0) {
             set_net_wm_pid = true;
         } else if (std::strcmp(argv[i], "--transient-for") == 0 && i + 1 < argc) {
@@ -121,7 +127,7 @@ int main(int argc, char** argv) {
         } else {
             std::fprintf(stderr,
                          "usage: %s [--title NAME] [--wm-instance NAME] [--wm-class NAME] [--urgent-after-ms N] [--ready-file PATH] [--width N] "
-                         "[--height N] [--desktop-index N] [--dock] [--dialog] [--net-wm-pid] [--transient-for WINDOW]\n",
+                         "[--height N] [--desktop-index N] [--dock] [--dialog] [--utility] [--fullscreen] [--net-wm-pid] [--transient-for WINDOW]\n",
                          argv[0]);
             return 2;
         }
@@ -173,6 +179,19 @@ int main(int argc, char** argv) {
         const xcb_atom_t net_wm_window_type_dialog = intern_atom(conn, "_NET_WM_WINDOW_TYPE_DIALOG");
         if (net_wm_window_type != XCB_ATOM_NONE && net_wm_window_type_dialog != XCB_ATOM_NONE)
             xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, net_wm_window_type, XCB_ATOM_ATOM, 32, 1, &net_wm_window_type_dialog);
+    }
+    if (utility_window) {
+        const xcb_atom_t net_wm_window_type         = intern_atom(conn, "_NET_WM_WINDOW_TYPE");
+        const xcb_atom_t net_wm_window_type_utility = intern_atom(conn, "_NET_WM_WINDOW_TYPE_UTILITY");
+        if (net_wm_window_type != XCB_ATOM_NONE && net_wm_window_type_utility != XCB_ATOM_NONE)
+            xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, net_wm_window_type, XCB_ATOM_ATOM, 32, 1, &net_wm_window_type_utility);
+    }
+    /* Pre-map _NET_WM_STATE_FULLSCREEN, as toolkits set it before mapping a fullscreen window. */
+    if (fullscreen) {
+        const xcb_atom_t net_wm_state            = intern_atom(conn, "_NET_WM_STATE");
+        const xcb_atom_t net_wm_state_fullscreen = intern_atom(conn, "_NET_WM_STATE_FULLSCREEN");
+        if (net_wm_state != XCB_ATOM_NONE && net_wm_state_fullscreen != XCB_ATOM_NONE)
+            xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win, net_wm_state, XCB_ATOM_ATOM, 32, 1, &net_wm_state_fullscreen);
     }
     if (set_net_wm_pid) {
         const xcb_atom_t net_wm_pid = intern_atom(conn, "_NET_WM_PID");

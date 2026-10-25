@@ -274,7 +274,7 @@ void updatewindowtype(Client* c) {
     const int modal_ewmh =
         (wtype == wm::x11::net_atom(NetWMWindowTypeDialog) || wtype == wm::x11::net_atom(NetWMWindowTypeSplash) || wtype == wm::x11::net_atom(NetWMWindowTypeUtility)) ? 1 : 0;
 
-    /* Splash/dialog/utility (and transients) often carry _NET_WM_STATE_FULLSCREEN; keep float overlay, not WM fullscreen. */
+    /* Splash/dialog often carry _NET_WM_STATE_FULLSCREEN; keep float overlay, not WM fullscreen. */
     if (isfs && !suppress_app_fs)
         setfullscreen(c, 1);
     else if (c->isfullscreen)

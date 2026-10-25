@@ -23,5 +23,5 @@ void adopt_client(wm::state::WMState& state, Window w, const wm::x11::WindowInfo
 void release_client(Client* c, int destroyed);
 void release_client(wm::state::WMState& state, Client* c, int destroyed);
 
-/* Suppress app-driven fullscreen for modal/transient windows (also used from clientmessage). */
+/* Suppress app-driven fullscreen for dialog/splash windows (map, clientmessage, and rule paths). */
 int client_wm_should_suppress_application_fullscreen(Client* c);

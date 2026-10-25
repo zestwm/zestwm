@@ -172,6 +172,7 @@ tests=(
   windowrule-special-workspace
   special-overlay-dialog-routing
   floating-dialog-onscreen
+  fullscreen-utility-transient
   clients-floating-export
   windowrule-workspace-occupancy-export
   windowrule-special-empty-tag

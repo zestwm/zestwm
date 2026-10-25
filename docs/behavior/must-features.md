@@ -79,6 +79,11 @@ New critical behaviors get a new `MUST-*` id, a test (or extension of an existin
   - Expected: `_NET_NUMBER_OF_DESKTOPS` / `_NET_DESKTOP_NAMES` still include `4`.
   - Covered by: `ewmh-dock-gap`.
 
+- `MUST-EWMH-002` UTILITY / transient windows honor `_NET_WM_STATE_FULLSCREEN`; DIALOG / SPLASH stay suppressed.
+  - Scenario: UTILITY window maps with fullscreen state; transient requests it via ClientMessage; `open-fullscreen` rule on UTILITY; DIALOG maps with fullscreen state.
+  - Expected: first three get monitor-sized fullscreen geometry (transient also leaves on remove); DIALOG keeps floating geometry.
+  - Covered by: `fullscreen-utility-transient`.
+
 - `MUST-FOCUS-001` `focusurgent` switches only when an urgent target exists.
   - Scenario: no urgent clients, then run `focusurgent`.
   - Expected: no unintended workspace switch/focus jump.

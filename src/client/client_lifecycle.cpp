@@ -108,14 +108,11 @@ void client_link(Monitor* m, Client* c) {
 void client_link_stack(Monitor* m, Client* c) {
     monitor_prepend_stack(m, c);
 }
+/* Only dialog/splash are suppressed: game engines (e.g. Godot) request fullscreen on UTILITY and/or transient windows. */
 int client_wm_should_suppress_application_fullscreen(Client* c) {
     const Atom wtype = getatomprop(c, wm::x11::net_atom(NetWMWindowType));
 
-    if (wtype == wm::x11::net_atom(NetWMWindowTypeDialog) || wtype == wm::x11::net_atom(NetWMWindowTypeSplash) || wtype == wm::x11::net_atom(NetWMWindowTypeUtility))
-        return 1;
-    if (wm::x11::read_transient_for(c->win))
-        return 1;
-    return 0;
+    return (wtype == wm::x11::net_atom(NetWMWindowTypeDialog) || wtype == wm::x11::net_atom(NetWMWindowTypeSplash)) ? 1 : 0;
 }
 void client_unlink(Monitor* m, Client* c) {
     monitor_remove_client(m, c);

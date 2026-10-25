@@ -424,6 +424,7 @@ if integration_tests_enabled
   windowrule_special_empty_tag_probe_script = files('tests/integration/windowrule_special_empty_tag_probe.sh')
   special_overlay_dialog_routing_probe_script = files('tests/integration/special_overlay_dialog_routing_probe.sh')
   floating_dialog_onscreen_probe_script = files('tests/integration/floating_dialog_onscreen_probe.sh')
+  fullscreen_utility_transient_probe_script = files('tests/integration/fullscreen_utility_transient_probe.sh')
   clients_floating_export_probe_script = files('tests/integration/clients_floating_export_probe.sh')
   randr_hotplug_probe_script = files('tests/integration/randr_hotplug_probe.sh')
   test(
@@ -710,6 +711,14 @@ if integration_tests_enabled
     'floating-dialog-onscreen',
     find_program('bash'),
     args: [floating_dialog_onscreen_probe_script, meson.current_build_dir()],
+    env: probe_test_env,
+    is_parallel: false,
+    timeout: 300,
+  )
+  test(
+    'fullscreen-utility-transient',
+    find_program('bash'),
+    args: [fullscreen_utility_transient_probe_script, meson.current_build_dir()],
     env: probe_test_env,
     is_parallel: false,
     timeout: 300,
